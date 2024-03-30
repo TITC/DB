@@ -1,35 +1,18 @@
-## News
-* DBNet and DBNet++ are included in [MindOCR](https://github.com/mindspore-lab/mindocr/tree/main/configs/det/dbnet), a MindSpore implementation.
-* The ASF module in DBNet++([TPAMI](https://ieeexplore.ieee.org/abstract/document/9726868/), [arxiv](https://arxiv.org/abs/2202.10304)) is released.
-* DB is included in [WeChat OCR engine](https://mp.weixin.qq.com/s/6IGXof3KWVnN8z1i2YOqJA)
-* DB is included in [OpenCV](https://github.com/opencv/opencv/blob/master/doc/tutorials/dnn/dnn_text_spotting/dnn_text_spotting.markdown)
-* DB is included in [PaddleOCR](https://github.com/PaddlePaddle/PaddleOCR)
-
 # Introduction
 This is a PyToch implementation of DBNet([arxiv](https://arxiv.org/abs/1911.08947)) and DBNet++([TPAMI](https://ieeexplore.ieee.org/abstract/document/9726868/), [arxiv](https://arxiv.org/abs/2202.10304)).  It presents a real-time arbitrary-shape scene text detector, achieving the state-of-the-art performance on standard benchmarks.
 
 Part of the code is inherited from [MegReader](https://github.com/Megvii-CSG/MegReader).
 
-## ToDo List
-
-- [x] Release code
-- [x] Document for Installation
-- [x] Trained models
-- [x] Document for testing and training
-- [x] Evaluation
-- [x] Demo script
-- [x] Release DBNet++ code
-- [x] Release DBNet++ models
-
-
 
 ## Installation
 
 ### Requirements:
-- Python3
-- PyTorch == 1.2 
-- GCC >= 4.9 (This is important for PyTorch)
-- CUDA >= 9.0 (10.1 is recommended)
+- Python3.10
+- torch                    2.2.2
+- torchaudio               2.2.2
+- torchvision              0.17.2
+- gcc version 9.4.0
+- CUDA Version: 12.3 
 
 
 ```bash
@@ -47,7 +30,7 @@ Part of the code is inherited from [MegReader](https://github.com/Megvii-CSG/Meg
   pip install -r requirement.txt
 
   # install PyTorch with cuda-10.1
-  conda install pytorch torchvision cudatoolkit=10.1 -c pytorch
+  pip3 install torch torchvision torchaudio
 
   # clone repo
   git clone https://github.com/MhLiao/DB.git
