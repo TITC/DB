@@ -23,7 +23,7 @@ class QuadMeasurer(Configurable):
         results = []
         gt_polyons_batch = batch['polygons']
         ignore_tags_batch = batch['ignore_tags']
-        pred_polygons_batch = np.array(output[0])
+        pred_polygons_batch = np.array(output[0], dtype=object)
         pred_scores_batch = np.array(output[1])
         for polygons, pred_polygons, pred_scores, ignore_tags in\
                 zip(gt_polyons_batch, pred_polygons_batch, pred_scores_batch, ignore_tags_batch):
@@ -38,7 +38,7 @@ class QuadMeasurer(Configurable):
                 for i in range(pred_polygons.shape[0]):
                     if pred_scores[i] >= box_thresh:
                         # print(pred_polygons[i,:,:].tolist())
-                        pred.append(dict(points=pred_polygons[i,:,:].tolist()))
+                        pred.append(dict(points=pred_polygons[i, :, :].tolist()))
                 # pred = [dict(points=pred_polygons[i,:,:].tolist()) if pred_scores[i] >= box_thresh for i in range(pred_polygons.shape[0])]
             results.append(self.evaluator.evaluate_image(gt, pred))
         return results
@@ -47,7 +47,7 @@ class QuadMeasurer(Configurable):
         return self.measure(batch, output, is_output_polygon, box_thresh)
 
     def evaluate_measure(self, batch, output):
-        return self.measure(batch, output),\
+        return self.measure(batch, output), \
             np.linspace(0, batch['image'].shape[0]).tolist()
 
     def gather_measure(self, raw_metrics, logger: Logger):
