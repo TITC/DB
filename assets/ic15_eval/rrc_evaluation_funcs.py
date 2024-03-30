@@ -304,7 +304,7 @@ def main_evaluation(p,default_evaluation_params_fn,validate_data_fn,evaluate_met
         evalData = evaluate_method_fn(p['g'], p['s'], evalParams)
         resDict.update(evalData)
         
-    except Exception, e:
+    except Exception as e:
         resDict['Message']= str(e)
         resDict['calculated']=False
 
@@ -360,8 +360,8 @@ def main_validation(default_evaluation_params_fn,validate_data_fn):
             evalParams.update( p['p'] if isinstance(p['p'], dict) else json.loads(p['p'][1:-1]) )
 
         validate_data_fn(p['g'], p['s'], evalParams)              
-        print 'SUCCESS'
+        print('SUCCESS')
         sys.exit(0)
     except Exception as e:
-        print str(e)
+        print(str(e))
         sys.exit(101)
