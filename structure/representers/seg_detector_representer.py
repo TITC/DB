@@ -93,12 +93,10 @@ class SegDetectorRepresenter(Configurable):
             if self.box_thresh > score:
                 continue
 
-            if points.shape[0] > 2:
-                box = self.unclip(points, unclip_ratio=2.0)
-                if len(box) > 1:
-                    continue
-            else:
+            box = self.unclip(points, unclip_ratio=2.0)
+            if len(box) > 1:
                 continue
+            box = np.array(box)
             box = box.reshape(-1, 2)
             _, sside = self.get_mini_boxes(box.reshape((-1, 1, 2)))
             if sside < self.min_size + 2:
@@ -132,8 +130,8 @@ class SegDetectorRepresenter(Configurable):
         num_contours = min(len(contours), self.max_candidates)
         boxes = np.zeros((num_contours, 4, 2), dtype=np.int16)
         scores = np.zeros((num_contours,), dtype=np.float32)
-
-        for index in range(num_contours):
+        index = 0
+        for _ in range(num_contours):
             contour = contours[index]
             points, sside = self.get_mini_boxes(contour)
             if sside < self.min_size:
@@ -143,21 +141,24 @@ class SegDetectorRepresenter(Configurable):
             if self.box_thresh > score:
                 continue
 
-            box = self.unclip(points).reshape(-1, 1, 2)
-            box, sside = self.get_mini_boxes(box)
-            if sside < self.min_size + 2:
-                continue
-            box = np.array(box)
-            if not isinstance(dest_width, int):
-                dest_width = dest_width.item()
-                dest_height = dest_height.item()
+            _box = self.unclip(points).reshape(-1, 1, 2)
+            for box in _box:
+                box = np.array(box)
+                box, sside = self.get_mini_boxes(box)
+                if sside < self.min_size + 2:
+                    continue
+                box = np.array(box)
+                if not isinstance(dest_width, int):
+                    dest_width = dest_width.item()
+                    dest_height = dest_height.item()
 
-            box[:, 0] = np.clip(
-                np.round(box[:, 0] / width * dest_width), 0, dest_width)
-            box[:, 1] = np.clip(
-                np.round(box[:, 1] / height * dest_height), 0, dest_height)
-            boxes[index, :, :] = box.astype(np.int16)
-            scores[index] = score
+                box[:, 0] = np.clip(
+                    np.round(box[:, 0] / width * dest_width), 0, dest_width)
+                box[:, 1] = np.clip(
+                    np.round(box[:, 1] / height * dest_height), 0, dest_height)
+                boxes[index, :, :] = box.astype(np.int16)
+                scores[index] = score
+                index += 1
         return boxes, scores
 
     def unclip(self, box, unclip_ratio=1.5):
@@ -165,7 +166,7 @@ class SegDetectorRepresenter(Configurable):
         distance = poly.area * unclip_ratio / poly.length
         offset = pyclipper.PyclipperOffset()
         offset.AddPath(box, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-        expanded = np.array(offset.Execute(distance))
+        expanded = offset.Execute(distance)
         return expanded
 
     def get_mini_boxes(self, contour):
