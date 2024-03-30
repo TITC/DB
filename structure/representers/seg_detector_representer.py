@@ -4,6 +4,7 @@ from shapely.geometry import Polygon
 import pyclipper
 from concern.config import Configurable, State
 
+
 class SegDetectorRepresenter(Configurable):
     thresh = State(default=0.3)
     box_thresh = State(default=0.7)
@@ -58,7 +59,7 @@ class SegDetectorRepresenter(Configurable):
             boxes_batch.append(boxes)
             scores_batch.append(scores)
         return boxes_batch, scores_batch
-    
+
     def binarize(self, pred):
         return pred > self.thresh
 
@@ -91,7 +92,7 @@ class SegDetectorRepresenter(Configurable):
             score = self.box_score_fast(pred, points.reshape(-1, 2))
             if self.box_thresh > score:
                 continue
-            
+
             if points.shape[0] > 2:
                 box = self.unclip(points, unclip_ratio=2.0)
                 if len(box) > 1:
@@ -106,7 +107,7 @@ class SegDetectorRepresenter(Configurable):
             if not isinstance(dest_width, int):
                 dest_width = dest_width.item()
                 dest_height = dest_height.item()
-            
+
             box[:, 0] = np.clip(
                 np.round(box[:, 0] / width * dest_width), 0, dest_width)
             box[:, 1] = np.clip(
@@ -120,7 +121,7 @@ class SegDetectorRepresenter(Configurable):
         _bitmap: single map with shape (1, H, W),
             whose values are binarized as {0, 1}
         '''
-        
+
         assert _bitmap.size(0) == 1
         bitmap = _bitmap.cpu().numpy()[0]  # The first channel
         pred = pred.cpu().detach().numpy()[0]
@@ -141,7 +142,7 @@ class SegDetectorRepresenter(Configurable):
             score = self.box_score_fast(pred, points.reshape(-1, 2))
             if self.box_thresh > score:
                 continue
-        
+
             box = self.unclip(points).reshape(-1, 1, 2)
             box, sside = self.get_mini_boxes(box)
             if sside < self.min_size + 2:
@@ -150,7 +151,7 @@ class SegDetectorRepresenter(Configurable):
             if not isinstance(dest_width, int):
                 dest_width = dest_width.item()
                 dest_height = dest_height.item()
-            
+
             box[:, 0] = np.clip(
                 np.round(box[:, 0] / width * dest_width), 0, dest_width)
             box[:, 1] = np.clip(
@@ -192,10 +193,10 @@ class SegDetectorRepresenter(Configurable):
     def box_score_fast(self, bitmap, _box):
         h, w = bitmap.shape[:2]
         box = _box.copy()
-        xmin = np.clip(np.floor(box[:, 0].min()).astype(np.int), 0, w - 1)
-        xmax = np.clip(np.ceil(box[:, 0].max()).astype(np.int), 0, w - 1)
-        ymin = np.clip(np.floor(box[:, 1].min()).astype(np.int), 0, h - 1)
-        ymax = np.clip(np.ceil(box[:, 1].max()).astype(np.int), 0, h - 1)
+        xmin = np.clip(np.floor(box[:, 0].min()).astype(np.int32), 0, w - 1)
+        xmax = np.clip(np.ceil(box[:, 0].max()).astype(np.int32), 0, w - 1)
+        ymin = np.clip(np.floor(box[:, 1].min()).astype(np.int32), 0, h - 1)
+        ymax = np.clip(np.ceil(box[:, 1].max()).astype(np.int32), 0, h - 1)
 
         mask = np.zeros((ymax - ymin + 1, xmax - xmin + 1), dtype=np.uint8)
         box[:, 0] = box[:, 0] - xmin
