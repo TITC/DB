@@ -1,7 +1,9 @@
+import torch
 import torch.nn as nn
 import math
 import torch.utils.model_zoo as model_zoo
 BatchNorm2d = nn.BatchNorm2d
+
 
 __all__ = ['ResNet', 'resnet18', 'resnet34', 'resnet50', 'resnet101',
            'resnet152']
@@ -26,6 +28,24 @@ def conv3x3(in_planes, out_planes, stride=1):
     """3x3 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=1, bias=False)
+
+
+def load_pretrained_model(model, url, device=None, strict=False):
+    """
+    Loads a pretrained model state dict from a URL with mapping to the specified device.
+
+    Args:
+        model (torch.nn.Module): The model to load the pretrained weights into.
+        url (str): URL to the pretrained model state dict.
+        device (torch.device, optional): The device to map the loaded weights to. If None,
+                                          uses CUDA if available, else CPU.
+    """
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Load the pretrained weights
+    pretrained_dict = model_zoo.load_url(url, map_location=device)
+    # Load the weights into the model
+    model.load_state_dict(pretrained_dict, strict=strict)
 
 
 class BasicBlock(nn.Module):
@@ -176,7 +196,7 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, block, layers, num_classes=1000, 
+    def __init__(self, block, layers, num_classes=1000,
                  dcn=None, stage_with_dcn=(False, False, False, False)):
         self.dcn = dcn
         self.stage_with_dcn = stage_with_dcn
@@ -196,8 +216,8 @@ class ResNet(nn.Module):
             block, 512, layers[3], stride=2, dcn=dcn)
         self.avgpool = nn.AvgPool2d(7, stride=1)
         self.fc = nn.Linear(512 * block.expansion, num_classes)
-    
-        self.smooth = nn.Conv2d(2048, 256, kernel_size=1, stride=1, padding=1)    
+
+        self.smooth = nn.Conv2d(2048, 256, kernel_size=1, stride=1, padding=1)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -251,9 +271,9 @@ def resnet18(pretrained=True, **kwargs):
     """
     model = ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(
-            model_urls['resnet18']), strict=False)
+        load_pretrained_model(model, model_urls['resnet18'])
     return model
+
 
 def deformable_resnet18(pretrained=True, **kwargs):
     """Constructs a ResNet-18 model.
@@ -261,13 +281,13 @@ def deformable_resnet18(pretrained=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
     """
     model = ResNet(BasicBlock, [2, 2, 2, 2],
-                    dcn=dict(modulated=True,
+                   dcn=dict(modulated=True,
                             deformable_groups=1,
                             fallback_on_stride=False),
-                    stage_with_dcn=[False, True, True, True], **kwargs)
+                   stage_with_dcn=[False, True, True, True], **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(
-            model_urls['resnet18']), strict=False)
+        print("model type: ", type(model))
+        load_pretrained_model(model, model_urls['resnet18'])
     return model
 
 
@@ -278,8 +298,7 @@ def resnet34(pretrained=True, **kwargs):
     """
     model = ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(
-            model_urls['resnet34']), strict=False)
+        load_pretrained_model(model, model_urls['resnet34'])
     return model
 
 
@@ -290,8 +309,7 @@ def resnet50(pretrained=True, **kwargs):
     """
     model = ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(
-            model_urls['resnet50']), strict=False)
+        load_pretrained_model(model, model_urls['resnet50'])
     return model
 
 
@@ -307,8 +325,7 @@ def deformable_resnet50(pretrained=True, **kwargs):
                    stage_with_dcn=[False, True, True, True],
                    **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(
-            model_urls['resnet50']), strict=False)
+        load_pretrained_model(model, model_urls['resnet50'])
     return model
 
 
@@ -319,8 +336,7 @@ def resnet101(pretrained=True, **kwargs):
     """
     model = ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(
-            model_urls['resnet101']), strict=False)
+        load_pretrained_model(model, model_urls['resnet101'])
     return model
 
 
@@ -331,6 +347,5 @@ def resnet152(pretrained=True, **kwargs):
     """
     model = ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
     if pretrained:
-        model.load_state_dict(model_zoo.load_url(
-            model_urls['resnet152']), strict=False)
+        load_pretrained_model(model, model_urls['resnet152'])
     return model
