@@ -118,4 +118,8 @@ results
 *.zip
 *.pyx
 struture/representers/setup.py
-demo_results
+datasets/*
+models/*
+outputs/workspace/*
+demo_results/*
+*pyc
